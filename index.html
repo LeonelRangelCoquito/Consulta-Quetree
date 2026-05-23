@@ -1,0 +1,936 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Consulta Inteligente • Quatree</title>
+
+<script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+<style>
+
+:root{
+
+    --bg:#f4f7fb;
+    --card:#ffffff;
+
+    --text:#0f172a;
+    --sub:#64748b;
+
+    --border:#e2e8f0;
+
+    --green:#16a34a;
+    --green-soft:#dcfce7;
+
+    --shadow:
+    0 10px 30px rgba(0,0,0,0.06);
+
+}
+
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+}
+
+body{
+
+    font-family:'Inter',sans-serif;
+    background:var(--bg);
+    color:var(--text);
+
+}
+
+.container{
+
+    width:100%;
+    max-width:1400px;
+
+    margin:auto;
+
+    padding:30px 18px 80px;
+
+}
+
+/* HEADER */
+
+.header{
+
+    margin-bottom:25px;
+
+}
+
+.header h1{
+
+    font-size:40px;
+    font-weight:800;
+
+    letter-spacing:-2px;
+
+}
+
+.header p{
+
+    color:var(--sub);
+    margin-top:8px;
+
+}
+
+/* SEARCH */
+
+.search-wrapper{
+
+    position:sticky;
+    top:15px;
+
+    z-index:100;
+
+    margin-bottom:28px;
+
+}
+
+.search-box{
+
+    background:white;
+
+    border:1px solid var(--border);
+
+    border-radius:26px;
+
+    padding:18px;
+
+    box-shadow:var(--shadow);
+
+}
+
+.search-input{
+
+    width:100%;
+    height:62px;
+
+    border:none;
+    outline:none;
+
+    background:#f8fafc;
+
+    border-radius:18px;
+
+    padding:0 22px;
+
+    font-size:17px;
+    font-weight:600;
+
+}
+
+.search-input:focus{
+
+    background:white;
+
+}
+
+.discount-row{
+
+    margin-top:16px;
+
+    display:flex;
+    align-items:center;
+    gap:12px;
+
+}
+
+.discount-row label{
+
+    font-size:14px;
+    font-weight:600;
+
+    color:var(--sub);
+
+}
+
+.discount-input{
+
+    width:90px;
+    height:42px;
+
+    border-radius:14px;
+
+    border:1px solid var(--border);
+
+    padding:0 12px;
+
+    font-size:15px;
+    font-weight:700;
+
+    outline:none;
+
+}
+
+/* RESULTS */
+
+.results{
+
+    display:flex;
+    flex-direction:column;
+    gap:22px;
+
+}
+
+/* CARD */
+
+.product-card{
+
+    background:white;
+
+    border-radius:28px;
+
+    overflow:hidden;
+
+    border:1px solid var(--border);
+
+    box-shadow:var(--shadow);
+
+}
+
+/* TOP */
+
+.card-top{
+
+    padding:26px;
+
+    border-bottom:1px solid #f1f5f9;
+
+}
+
+.line{
+
+    display:inline-flex;
+
+    align-items:center;
+    justify-content:center;
+
+    padding:10px 16px;
+
+    border-radius:999px;
+
+    color:white;
+
+    font-size:12px;
+    font-weight:700;
+
+    margin-bottom:16px;
+
+}
+
+.product-name{
+
+    font-size:28px;
+    font-weight:800;
+
+    letter-spacing:-1px;
+
+}
+
+.product-flavor{
+
+    margin-top:10px;
+
+    color:var(--sub);
+
+    line-height:1.6;
+
+}
+
+/* TABLE */
+
+.table-container{
+
+    overflow:auto;
+
+}
+
+.subtable{
+
+    width:100%;
+    border-collapse:collapse;
+
+}
+
+.subtable thead{
+
+    background:#f8fafc;
+
+}
+
+.subtable th{
+
+    text-align:left;
+
+    padding:18px 24px;
+
+    font-size:12px;
+    text-transform:uppercase;
+
+    color:var(--sub);
+
+}
+
+.subtable td{
+
+    padding:22px 24px;
+
+    border-top:1px solid #f1f5f9;
+
+}
+
+.subtable tr:hover{
+
+    background:#fafcff;
+
+}
+
+/* BADGES */
+
+.weight{
+
+    display:inline-flex;
+
+    background:#dbeafe;
+
+    color:#1d4ed8;
+
+    padding:10px 14px;
+
+    border-radius:14px;
+
+    font-size:13px;
+    font-weight:700;
+
+}
+
+.discount-badge{
+
+    display:inline-flex;
+
+    background:var(--green-soft);
+
+    color:var(--green);
+
+    padding:10px 14px;
+
+    border-radius:14px;
+
+    font-size:13px;
+    font-weight:700;
+
+}
+
+/* PRICE */
+
+.old-price{
+
+    color:#94a3b8;
+
+    text-decoration:line-through;
+
+    font-size:13px;
+
+    margin-bottom:5px;
+
+}
+
+.new-price{
+
+    color:var(--green);
+
+    font-size:24px;
+    font-weight:800;
+
+}
+
+/* EMPTY */
+
+.empty{
+
+    background:white;
+
+    border-radius:24px;
+
+    border:1px solid var(--border);
+
+    padding:60px;
+
+    text-align:center;
+
+    color:var(--sub);
+
+}
+
+@media(max-width:768px){
+
+    .header h1{
+
+        font-size:32px;
+
+    }
+
+    .product-name{
+
+        font-size:24px;
+
+    }
+
+    .subtable{
+
+        min-width:650px;
+
+    }
+
+}
+
+</style>
+
+</head>
+<body>
+
+<div class="container">
+
+    <div class="header">
+
+        <h1>Consulta Inteligente</h1>
+
+        <p>
+            Pesquisa rápida com desconto em tempo real
+        </p>
+
+    </div>
+
+    <div class="search-wrapper">
+
+        <div class="search-box">
+
+            <input
+            type="text"
+            id="searchInput"
+            class="search-input"
+            placeholder="Digite: gato, filhote, dermasense, castrado...">
+
+            <div class="discount-row">
+
+                <label>Desconto (%)</label>
+
+                <input
+                type="number"
+                id="discountInput"
+                class="discount-input"
+                value="5"
+                min="0"
+                max="100">
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <div
+    class="results"
+    id="results"></div>
+
+</div>
+
+<script>
+
+/* =========================
+   ELEMENTOS
+========================= */
+
+const results =
+document.getElementById("results");
+
+const searchInput =
+document.getElementById("searchInput");
+
+const discountInput =
+document.getElementById("discountInput");
+
+/* =========================
+   DADOS
+========================= */
+
+let groupedProducts = [];
+
+/* =========================
+   LOAD CSV
+========================= */
+
+fetch("dados.csv")
+
+.then(response => response.text())
+
+.then(csv => {
+
+    Papa.parse(csv, {
+
+        header:true,
+        skipEmptyLines:true,
+
+        complete:function(result){
+
+            prepareProducts(result.data);
+
+        }
+
+    });
+
+})
+
+.catch(() => {
+
+    results.innerHTML = `
+
+    <div class="empty">
+        Erro ao carregar dados.csv
+    </div>
+
+    `;
+
+});
+
+/* =========================
+   NORMALIZE
+========================= */
+
+function normalize(text){
+
+    return (text || "")
+    .toString()
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g,"")
+    .replace(/[^\w\s]/g," ")
+    .replace(/\s+/g," ")
+    .trim();
+
+}
+
+/* =========================
+   LEVENSHTEIN
+========================= */
+
+function levenshtein(a,b){
+
+    if(a === b) return 0;
+
+    if(a.length === 0)
+        return b.length;
+
+    if(b.length === 0)
+        return a.length;
+
+    const matrix = [];
+
+    for(let i=0;i<=b.length;i++){
+
+        matrix[i] = [i];
+
+    }
+
+    for(let j=0;j<=a.length;j++){
+
+        matrix[0][j] = j;
+
+    }
+
+    for(let i=1;i<=b.length;i++){
+
+        for(let j=1;j<=a.length;j++){
+
+            if(b[i-1] === a[j-1]){
+
+                matrix[i][j] =
+                matrix[i-1][j-1];
+
+            }else{
+
+                matrix[i][j] = Math.min(
+
+                    matrix[i-1][j-1] + 1,
+                    matrix[i][j-1] + 1,
+                    matrix[i-1][j] + 1
+
+                );
+
+            }
+
+        }
+
+    }
+
+    return matrix[b.length][a.length];
+
+}
+
+/* =========================
+   PREPARA PRODUTOS
+========================= */
+
+function prepareProducts(data){
+
+    const grouped = {};
+
+    data.forEach(item => {
+
+        const key =
+
+        item.Linha + "|" +
+        item.Produto + "|" +
+        item.Sabor;
+
+        if(!grouped[key]){
+
+            grouped[key] = {
+
+                linha:item.Linha,
+                produto:item.Produto,
+                sabor:item.Sabor,
+                cor:item.Ean_Cor,
+
+                searchable:
+
+                normalize(
+
+                    item.Linha + " " +
+                    item.Categoria + " " +
+                    item.Produto + " " +
+                    item.Sabor
+
+                ),
+
+                items:[]
+
+            };
+
+        }
+
+        grouped[key].items.push(item);
+
+    });
+
+    groupedProducts =
+    Object.values(grouped);
+
+    showEmpty();
+
+}
+
+/* =========================
+   MONEY
+========================= */
+
+function money(value){
+
+    return Number(value)
+    .toLocaleString("pt-BR",{
+
+        style:"currency",
+        currency:"BRL"
+
+    });
+
+}
+
+/* =========================
+   PESQUISA
+========================= */
+
+function matches(searchable, search){
+
+    const searchWords =
+    normalize(search).split(" ");
+
+    const textWords =
+    searchable.split(" ");
+
+    return searchWords.every(searchWord => {
+
+        return textWords.some(textWord => {
+
+            /* EXATO */
+
+            if(textWord === searchWord)
+                return true;
+
+            /* COMEÇA */
+
+            if(textWord.startsWith(searchWord))
+                return true;
+
+            /* CONTÉM */
+
+            if(textWord.includes(searchWord))
+                return true;
+
+            /* FUZZY LEVE */
+
+            if(
+                searchWord.length >= 5 &&
+                levenshtein(
+                    textWord,
+                    searchWord
+                ) <= 1
+            ){
+
+                return true;
+
+            }
+
+            return false;
+
+        });
+
+    });
+
+}
+
+/* =========================
+   EMPTY
+========================= */
+
+function showEmpty(){
+
+    results.innerHTML = `
+
+    <div class="empty">
+
+        Digite algo para pesquisar
+
+    </div>
+
+    `;
+
+}
+
+/* =========================
+   RENDER
+========================= */
+
+function renderProducts(){
+
+    const search =
+    searchInput.value.trim();
+
+    const discount =
+    parseFloat(discountInput.value) || 0;
+
+    if(search === ""){
+
+        showEmpty();
+        return;
+
+    }
+
+    const filtered =
+    groupedProducts.filter(group => {
+
+        return matches(
+            group.searchable,
+            search
+        );
+
+    });
+
+    if(filtered.length === 0){
+
+        results.innerHTML = `
+
+        <div class="empty">
+
+            Nenhum produto encontrado
+
+        </div>
+
+        `;
+
+        return;
+
+    }
+
+    let html = "";
+
+    filtered.forEach(group => {
+
+        let rows = "";
+
+        group.items.forEach(item => {
+
+            const currentPrice =
+            parseFloat(item.Preco_Atual);
+
+            const newPrice =
+
+            currentPrice -
+            (currentPrice * discount / 100);
+
+            let weight =
+
+            item.Peso
+            .replace("kg","")
+            .replace(",",".")
+            .trim();
+
+            let kg =
+            parseFloat(weight);
+
+            if(
+                item.Peso
+                .toLowerCase()
+                .includes("granel")
+            ){
+
+                kg = 1;
+
+            }
+
+            if(isNaN(kg)){
+
+                kg = 1;
+
+            }
+
+            const newKgPrice =
+            newPrice / kg;
+
+            rows += `
+
+            <tr>
+
+                <td>
+
+                    <span class="weight">
+                        ${item.Peso}
+                    </span>
+
+                </td>
+
+                <td>
+
+                    <div class="old-price">
+                        ${money(currentPrice)}
+                    </div>
+
+                    <div class="new-price">
+                        ${money(newPrice)}
+                    </div>
+
+                </td>
+
+                <td>
+
+                    <span class="discount-badge">
+                        ${discount.toFixed(1)}%
+                    </span>
+
+                </td>
+
+                <td>
+
+                    ${money(newKgPrice)}
+
+                </td>
+
+            </tr>
+
+            `;
+
+        });
+
+        html += `
+
+        <div class="product-card">
+
+            <div class="card-top">
+
+                <div
+                class="line"
+                style="background:${group.cor}">
+
+                    ${group.linha}
+
+                </div>
+
+                <div class="product-name">
+
+                    ${group.produto}
+
+                </div>
+
+                <div class="product-flavor">
+
+                    ${group.sabor}
+
+                </div>
+
+            </div>
+
+            <div class="table-container">
+
+                <table class="subtable">
+
+                    <thead>
+
+                        <tr>
+
+                            <th>Peso</th>
+                            <th>Preço</th>
+                            <th>Desconto</th>
+                            <th>Preço/KG</th>
+
+                        </tr>
+
+                    </thead>
+
+                    <tbody>
+
+                        ${rows}
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+        </div>
+
+        `;
+
+    });
+
+    results.innerHTML = html;
+
+}
+
+/* =========================
+   EVENTS
+========================= */
+
+searchInput.addEventListener(
+"input",
+renderProducts
+);
+
+discountInput.addEventListener(
+"input",
+renderProducts
+);
+
+</script>
+
+</body>
+</html>

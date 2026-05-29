@@ -314,6 +314,23 @@ body{
 
 }
 
+.code{
+
+    display:inline-flex;
+
+    background:#ede9fe;
+
+    color:#6d28d9;
+
+    padding:10px 14px;
+
+    border-radius:14px;
+
+    font-size:13px;
+    font-weight:700;
+
+}
+
 .discount-badge{
 
     display:inline-flex;
@@ -388,7 +405,7 @@ body{
 
     .subtable{
 
-        min-width:650px;
+        min-width:850px;
 
     }
 
@@ -419,7 +436,7 @@ body{
             type="text"
             id="searchInput"
             class="search-input"
-            placeholder="Digite: gato, filhote, dermasense, castrado...">
+            placeholder="Digite produto, sabor, categoria ou código...">
 
             <div class="discount-row">
 
@@ -447,10 +464,6 @@ body{
 
 <script>
 
-/* =========================
-   ELEMENTOS
-========================= */
-
 const results =
 document.getElementById("results");
 
@@ -460,15 +473,30 @@ document.getElementById("searchInput");
 const discountInput =
 document.getElementById("discountInput");
 
-/* =========================
-   DADOS
-========================= */
-
 let groupedProducts = [];
 
-/* =========================
-   LOAD CSV
-========================= */
+function getColorByLine(line){
+
+    const colors = {
+
+        "Quatree Supreme":"#7c3aed",
+        "Quatree Life":"#2563eb",
+        "Quatree Select":"#dc2626",
+        "Quatree Gourmet":"#f57c00"
+
+    };
+
+    return colors[line] || "#16a34a";
+
+}
+
+results.innerHTML = `
+
+<div class="empty">
+    Carregando produtos...
+</div>
+
+`;
 
 fetch("dados.csv")
 
@@ -503,10 +531,6 @@ fetch("dados.csv")
 
 });
 
-/* =========================
-   NORMALIZE
-========================= */
-
 function normalize(text){
 
     return (text || "")
@@ -519,10 +543,6 @@ function normalize(text){
     .trim();
 
 }
-
-/* =========================
-   LEVENSHTEIN
-========================= */
 
 function levenshtein(a,b){
 
@@ -577,10 +597,6 @@ function levenshtein(a,b){
 
 }
 
-/* =========================
-   PREPARA PRODUTOS
-========================= */
-
 function prepareProducts(data){
 
     const grouped = {};
@@ -600,12 +616,14 @@ function prepareProducts(data){
                 linha:item.Linha,
                 produto:item.Produto,
                 sabor:item.Sabor,
-                cor:item.Ean_Cor,
+
+                cor:getColorByLine(item.Linha),
 
                 searchable:
 
                 normalize(
 
+                    item.Codigo + " " +
                     item.Linha + " " +
                     item.Categoria + " " +
                     item.Produto + " " +
@@ -630,10 +648,6 @@ function prepareProducts(data){
 
 }
 
-/* =========================
-   MONEY
-========================= */
-
 function money(value){
 
     return Number(value)
@@ -645,10 +659,6 @@ function money(value){
     });
 
 }
-
-/* =========================
-   PESQUISA
-========================= */
 
 function matches(searchable, search){
 
@@ -662,22 +672,14 @@ function matches(searchable, search){
 
         return textWords.some(textWord => {
 
-            /* EXATO */
-
             if(textWord === searchWord)
                 return true;
-
-            /* COMEÇA */
 
             if(textWord.startsWith(searchWord))
                 return true;
 
-            /* CONTÉM */
-
             if(textWord.includes(searchWord))
                 return true;
-
-            /* FUZZY LEVE */
 
             if(
                 searchWord.length >= 5 &&
@@ -699,10 +701,6 @@ function matches(searchable, search){
 
 }
 
-/* =========================
-   EMPTY
-========================= */
-
 function showEmpty(){
 
     results.innerHTML = `
@@ -717,9 +715,39 @@ function showEmpty(){
 
 }
 
-/* =========================
-   RENDER
-========================= */
+function getKg(weightText){
+
+    const text =
+    (weightText || "")
+    .toLowerCase()
+    .replace(",",".")
+    .trim();
+
+    if(text.includes("granel")){
+
+        return 1;
+
+    }
+
+    if(text.includes("kg")){
+
+        return parseFloat(
+            text.replace("kg","")
+        );
+
+    }
+
+    if(text.includes("g")){
+
+        return parseFloat(
+            text.replace("g","")
+        ) / 1000;
+
+    }
+
+    return 1;
+
+}
 
 function renderProducts(){
 
@@ -728,6 +756,11 @@ function renderProducts(){
 
     const discount =
     parseFloat(discountInput.value) || 0;
+
+    localStorage.setItem(
+        "discount",
+        discount
+    );
 
     if(search === ""){
 
@@ -778,31 +811,8 @@ function renderProducts(){
             currentPrice -
             (currentPrice * discount / 100);
 
-            let weight =
-
-            item.Peso
-            .replace("kg","")
-            .replace(",",".")
-            .trim();
-
-            let kg =
-            parseFloat(weight);
-
-            if(
-                item.Peso
-                .toLowerCase()
-                .includes("granel")
-            ){
-
-                kg = 1;
-
-            }
-
-            if(isNaN(kg)){
-
-                kg = 1;
-
-            }
+            const kg =
+            getKg(item.Peso);
 
             const newKgPrice =
             newPrice / kg;
@@ -810,6 +820,14 @@ function renderProducts(){
             rows += `
 
             <tr>
+
+                <td>
+
+                    <span class="code">
+                        ${item.Codigo}
+                    </span>
+
+                </td>
 
                 <td>
 
@@ -887,6 +905,7 @@ function renderProducts(){
 
                         <tr>
 
+                            <th>Código</th>
                             <th>Peso</th>
                             <th>Preço</th>
                             <th>Desconto</th>
@@ -916,13 +935,24 @@ function renderProducts(){
 
 }
 
-/* =========================
-   EVENTS
-========================= */
+discountInput.value =
+localStorage.getItem("discount") || 0;
+
+let timeout;
 
 searchInput.addEventListener(
 "input",
-renderProducts
+() => {
+
+    clearTimeout(timeout);
+
+    timeout = setTimeout(() => {
+
+        renderProducts();
+
+    },200);
+
+}
 );
 
 discountInput.addEventListener(
